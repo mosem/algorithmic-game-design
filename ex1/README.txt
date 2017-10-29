@@ -1,0 +1,3 @@
+Moshemandel 301117800
+
+BasherSpaceship - This spaceship tries to be as aggressive as possible by shooting down or colliding with the nearest spaceship, even at the cost of its own life. It tries to preserve as much of its shield as possible, by using it only if it predicts that a shot will hit it. To do so, it calculates the future positions of all the shots in the game (except its own) and if any of them collide with the spaceship’s own position - it turns on its shield. Also, it turns on its shield if it close to another spaceship.
