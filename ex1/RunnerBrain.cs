@@ -4,15 +4,15 @@ using System.Collections.Generic;
 using Infra.Utils;
 
 namespace StarWars.Brains {
-public class BasherBrain : SpaceshipBrain {
+public class RunnerBrain : SpaceshipBrain {
     public override string DefaultName {
         get {
-            return "Basher";
+            return "Runner";
         }
     }
     public override Color PrimaryColor {
         get {
-            return new Color((float)0xF9 / 0xFF, (float)0x6C / 0xFF, (float)0xC6 / 0xFF, 1f);
+            return new Color((float)0x00 / 0xFF, (float)0xFF / 0xFF, (float)0xC6 / 0xFF, 1f);
         }
     }
     public override SpaceshipBody.Type BodyType {
@@ -20,33 +20,44 @@ public class BasherBrain : SpaceshipBrain {
 				return SpaceshipBody.Type.XWing;
         }
     }
-	[SerializeField] bool isBeingShotAt = false	;
 
-	/// <summary>
-	/// Tries to bash or shoot down nearest ship.
-	/// Tries to predict if any of the shots will hit next turn, if so turns on shield.
-	/// If any ship is too close, turns on shield.
-	/// </summary>
-    public override Action NextAction() {
-		isBeingShotAt = IsBeingShotAt();
+    /// <summary>
+    /// Tries to avoid ships, unless they are in front and theyr'e not capable of raising a shield and without shield currently.
+    /// </summary>
+    public override Action NextAction ()
+		{
+			var isBeingShotAt = IsBeingShotAt ();
 		
-		var nearestShip = FindNearsetShip();
-		if (nearestShip == null) {
-			return spaceship.IsShieldUp ? ShieldDown.action : DoNothing.action;
-		}
-		var pos = spaceship.ClosestRelativePosition(nearestShip);
-		var angle = pos.GetAngle(spaceship.Forward);
-		if ((pos.magnitude < 2f || isBeingShotAt) && spaceship.CanRaiseShield){
-			return ShieldUp.action;
-		} else if (spaceship.IsShieldUp && pos.magnitude >= 2f && !isBeingShotAt) {
-			return ShieldDown.action;
-		} else if (angle >= 10f) {
-			return TurnLeft.action;
-		} else if (angle <= -10f) {
-			return TurnRight.action;
-		} else if (spaceship.CanShoot && pos.magnitude < 10f) {
-			return Shoot.action;
-		}
+			var nearestShip = FindNearsetShip ();
+			if (nearestShip == null) {
+				return spaceship.IsShieldUp ? ShieldDown.action : DoNothing.action;
+			}
+			var pos = spaceship.ClosestRelativePosition (nearestShip);
+			var angle = pos.GetAngle (spaceship.Forward);
+		
+			if ((pos.magnitude < 3f  || isBeingShotAt)  && spaceship.CanRaiseShield) {
+				return ShieldUp.action;
+			} else if (spaceship.IsShieldUp && pos.magnitude >= 3f && !isBeingShotAt) {
+				return ShieldDown.action;
+			} else if (angle < 45f && angle > -45f && spaceship.CanShoot && pos.magnitude < 10f) {
+				// near spaceship is in front
+				if (nearestShip.Energy >= 100f || nearestShip.IsShieldUp) { //run away
+					if (angle > 0) {
+						return TurnRight.action;
+					} else {
+						return TurnLeft.action;
+					}
+				} else if (angle > 10f ) {
+					return TurnLeft.action;
+				} else if (angle < -10f) {
+					return TurnRight.action;
+				}
+				return Shoot.action;
+			} else if (pos.magnitude < 10f && angle >= 30f) {
+				return TurnRight.action;
+			} else if (pos.magnitude < 10f && angle <= -30f) {
+				return TurnLeft.action;
+			}
 		return DoNothing.action;
     }
 
@@ -134,5 +145,5 @@ public class BasherBrain : SpaceshipBrain {
 
 	
 }
-	
+
 }
